@@ -22,16 +22,20 @@
   },
   "experience": [
     {
+      "id": "exp-1",
       "role": "Software Engineer",
-      "company": "Current role",
+      "company": "",
+      "roleType": "Current role",
       "start": "2024-01",
       "end": null,
       "location": "Kochi, Kerala",
       "description": "Building and maintaining full-stack applications with modern web and backend technologies."
     },
     {
+      "id": "exp-2",
       "role": "Software Developer",
-      "company": "Previous role",
+      "company": "",
+      "roleType": "Previous role",
       "start": "2022-09",
       "end": "2023-12",
       "location": "Kochi, Kerala",
@@ -41,19 +45,41 @@
   "skills": [
     {
       "group": "Frontend",
-      "items": ["React", "Angular", "Next.js", "TypeScript", "Tailwind CSS"]
+      "items": [
+        "React",
+        "Angular",
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS"
+      ]
     },
     {
       "group": "Backend",
-      "items": [".NET", "C#", "FastAPI", "Python", "Node.js"]
+      "items": [
+        ".NET",
+        "C#",
+        "FastAPI",
+        "Python",
+        "Node.js"
+      ]
     },
     {
       "group": "Databases",
-      "items": ["SQL", "SQL Server", "PostgreSQL", "Supabase", "ORM"]
+      "items": [
+        "SQL",
+        "SQL Server",
+        "PostgreSQL",
+        "Supabase",
+        "ORM"
+      ]
     },
     {
       "group": "Platforms & Analytics",
-      "items": ["FlutterFlow", "Power BI", "AI-integrated applications"]
+      "items": [
+        "FlutterFlow",
+        "Power BI",
+        "AI-integrated applications"
+      ]
     }
   ],
   "projects": [
@@ -61,33 +87,61 @@
       "name": "AI Gateway",
       "category": "AI infrastructure",
       "description": "A universal AI gateway concept for model adapters, agent workflows, tool contracts, and bounded execution.",
-      "technologies": ["FastAPI", "Python", "LangGraph", "PostgreSQL"],
+      "technologies": [
+        "FastAPI",
+        "Python",
+        "LangGraph",
+        "PostgreSQL"
+      ],
       "status": "In development",
-      "url": "https://github.com/allanvarghese567-lab/meridian-gateway"
+      "url": "https://github.com/allanvarghese567-lab/meridian-gateway",
+      "experienceId": null,
+      "skills": []
     },
     {
       "name": "TravelAI",
       "category": "Travel technology",
       "description": "A trip-planning platform concept for route-based stop suggestions and itinerary generation.",
-      "technologies": ["Next.js", "TypeScript", "Supabase", "Maps"],
+      "technologies": [
+        "Next.js",
+        "TypeScript",
+        "Supabase",
+        "Maps"
+      ],
       "status": "In development",
-      "url": "https://github.com/allanvarghese567-lab/TravelAi"
+      "url": "https://github.com/allanvarghese567-lab/TravelAi",
+      "experienceId": null,
+      "skills": []
     },
     {
       "name": "OrbitOne",
       "category": "Multi-tenant SaaS",
       "description": "A modular SaaS platform concept with tenant-aware access, business modules, billing, and workflows.",
-      "technologies": ["Next.js", "Supabase", "Drizzle", "Tailwind CSS"],
+      "technologies": [
+        "Next.js",
+        "Supabase",
+        "Drizzle",
+        "Tailwind CSS"
+      ],
       "status": "Concept / build plan",
-      "url": ""
+      "url": "",
+      "experienceId": null,
+      "skills": []
     },
     {
       "name": "ResumeAI",
       "category": "Career tools",
       "description": "An AI-assisted resume builder concept using structured resume data, reusable templates, validation, and document exports.",
-      "technologies": ["Next.js", "TypeScript", "Zod", "PDF export"],
+      "technologies": [
+        "Next.js",
+        "TypeScript",
+        "Zod",
+        "PDF export"
+      ],
       "status": "In development",
-      "url": "https://github.com/allanvarghese567-lab/ResumeAi"
+      "url": "https://github.com/allanvarghese567-lab/ResumeAi",
+      "experienceId": null,
+      "skills": []
     }
   ],
   "achievements": [
