@@ -51,19 +51,28 @@ Set the same environment variable `NEXT_PUBLIC_ADMIN_PASSWORD` in your hosting d
 
 The portfolio uses a local JSON file. The admin page cannot write files on the server directly, so publishing goes through a GitHub Action.
 
+### Credentials (owner, repo, token)
+
+| Credential | Where to put it | Notes |
+|------------|-----------------|--------|
+| **OWNER** | Admin → GitHub credentials, or `NEXT_PUBLIC_GITHUB_OWNER` | Default: `allanvarghese567-lab` |
+| **REPO** | Admin → GitHub credentials, or `NEXT_PUBLIC_GITHUB_REPO` | Default: `allan-varghese-portfolio` |
+| **TOKEN** | Admin → GitHub credentials only | Fine-grained PAT. **Never** commit or use `NEXT_PUBLIC_` for the token |
+| **Admin password** | `.env.local` or GitHub Actions secret `NEXT_PUBLIC_ADMIN_PASSWORD` | Required to open `/admin` |
+
 ### One-time setup
 
 1. Push this repository to GitHub (if you haven’t already).
-2. Create a **fine-grained Personal Access Token**:
-   - GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
+2. Create a **fine-grained Personal Access Token** (this is TOKEN):
+   - Your **account** → Settings → Developer settings → Personal access tokens → Fine-grained tokens
    - Resource owner: your account
-   - Repository access: **Only select repositories** → choose this portfolio repo
+   - Repository access: **Only select repositories** → `allan-varghese-portfolio`
    - Permissions → Repository permissions → **Contents: Read and write**
-   - Generate and copy the token
-3. Open `/admin` → click **GitHub settings**
-   - Owner: your GitHub username (default already set to `allanvarghese567-lab`)
-   - Repository name: the exact name of this portfolio repository
-   - Paste the token (stored only in your browser’s `localStorage`)
+   - Generate and copy the token once
+3. Open `/admin` → **GitHub settings** (credentials panel)
+   - **OWNER:** `allanvarghese567-lab`
+   - **REPO:** `allan-varghese-portfolio`
+   - **TOKEN:** paste the PAT (saved only in this browser’s `localStorage`)
 
 ### Everyday workflow
 
