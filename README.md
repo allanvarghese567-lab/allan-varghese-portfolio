@@ -53,25 +53,35 @@ The portfolio uses a local JSON file. The admin page cannot write files on the s
 
 ### Credentials (owner, repo, token)
 
-| Credential | Where to put it | Notes |
-|------------|-----------------|--------|
-| **OWNER** | Admin → GitHub credentials, or `NEXT_PUBLIC_GITHUB_OWNER` | Default: `allanvarghese567-lab` |
-| **REPO** | Admin → GitHub credentials, or `NEXT_PUBLIC_GITHUB_REPO` | Default: `allan-varghese-portfolio` |
-| **TOKEN** | Admin → GitHub credentials only | Fine-grained PAT. **Never** commit or use `NEXT_PUBLIC_` for the token |
-| **Admin password** | `.env.local` or GitHub Actions secret `NEXT_PUBLIC_ADMIN_PASSWORD` | Required to open `/admin` |
+GitHub Actions secrets (Repo → **Settings** → **Secrets and variables** → **Actions**):
+
+| Secret name | Example value | Purpose |
+|-------------|---------------|---------|
+| **`NEXT_PUBLIC_ADMIN_PASSWORD`** | your admin login password | Required to open `/admin` |
+| **`NEXT_PUBLIC_GITHUB_OWNER`** | `allanvarghese567-lab` | OWNER baked into admin at Pages build |
+| **`NEXT_PUBLIC_GITHUB_REPO`** | `allan-varghese-portfolio` | REPO baked into admin at Pages build |
+
+| Credential | Where it comes from | Notes |
+|------------|---------------------|--------|
+| **OWNER** | Secret `NEXT_PUBLIC_GITHUB_OWNER` (or admin form) | Default if secret missing: `allanvarghese567-lab` |
+| **REPO** | Secret `NEXT_PUBLIC_GITHUB_REPO` (or admin form) | Default if secret missing: `allan-varghese-portfolio` |
+| **TOKEN** | Admin → **GitHub credentials** only | Fine-grained PAT. **Never** an Actions secret on static Pages (browser cannot read secrets). Never use `NEXT_PUBLIC_` for the PAT |
+| **Admin password** | Secret / `.env.local` `NEXT_PUBLIC_ADMIN_PASSWORD` | Required to open `/admin` |
+
+**Vercel / Node (optional):** you can also set `PORTFOLIO_GITHUB_TOKEN` as a server env var so `/api/publish` works without a browser TOKEN. That path is not used on pure GitHub Pages.
 
 ### One-time setup
 
 1. Push this repository to GitHub (if you haven’t already).
-2. Create a **fine-grained Personal Access Token** (this is TOKEN):
+2. Add Actions secrets: `NEXT_PUBLIC_ADMIN_PASSWORD`, `NEXT_PUBLIC_GITHUB_OWNER`, `NEXT_PUBLIC_GITHUB_REPO` (values above).
+3. Create a **fine-grained Personal Access Token** (this is TOKEN — for the admin form only):
    - Your **account** → Settings → Developer settings → Personal access tokens → Fine-grained tokens
    - Resource owner: your account
    - Repository access: **Only select repositories** → `allan-varghese-portfolio`
    - Permissions → Repository permissions → **Contents: Read and write**
    - Generate and copy the token once
-3. Open `/admin` → **GitHub settings** (credentials panel)
-   - **OWNER:** `allanvarghese567-lab`
-   - **REPO:** `allan-varghese-portfolio`
+4. Open `/admin` → **GitHub credentials**
+   - OWNER / REPO should already match the secrets after a Pages deploy
    - **TOKEN:** paste the PAT (saved only in this browser’s `localStorage`)
 
 ### Everyday workflow
@@ -109,13 +119,19 @@ Role dates, degree, grade, current company, and passed Angular assessment are ba
 
 ### GitHub Pages (static)
 
-If you want a pure static site on GitHub Pages, change `next.config.ts` to:
+This repo is set up for GitHub Pages (no `gh-pages` branch — deploy via Actions):
 
-```ts
-const nextConfig = { output: 'export' };
-```
+1. Repo → **Settings** → **Pages** → Source: **GitHub Actions**
+2. Add Actions secrets:
+   - `NEXT_PUBLIC_ADMIN_PASSWORD`
+   - `NEXT_PUBLIC_GITHUB_OWNER` = `allanvarghese567-lab`
+   - `NEXT_PUBLIC_GITHUB_REPO` = `allan-varghese-portfolio`
+3. Push to `main` (or run workflow **Deploy to GitHub Pages**)
+4. Site: `https://allanvarghese567-lab.github.io/allan-varghese-portfolio/`
 
-Then configure the repository’s Pages source to the `gh-pages` branch or GitHub Actions static export workflow.
+`next.config.ts` uses `output: 'export'`. The deploy workflow sets `GITHUB_PAGES=true` so `basePath` is applied, and injects OWNER/REPO from the secrets above.
+
+Publish from `/admin` still needs a **browser TOKEN** (PAT in GitHub credentials), because Pages has no server API.
 
 ### Vercel / Node host
 
