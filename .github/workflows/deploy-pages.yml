@@ -33,8 +33,8 @@ jobs:
       - name: Resolve OWNER / REPO from secrets
         id: creds
         env:
-          SECRET_OWNER: ${{ secrets.GITHUB_OWNER }}
-          SECRET_REPO: ${{ secrets.GITHUB_REPO }}
+          SECRET_OWNER: ${{ secrets.NEXT_PUBLIC_GITHUB_OWNER }}
+          SECRET_REPO: ${{ secrets.NEXT_PUBLIC_GITHUB_REPO }}
         run: |
           echo "owner=${SECRET_OWNER:-allanvarghese567-lab}" >> "$GITHUB_OUTPUT"
           echo "repo=${SECRET_REPO:-allan-varghese-portfolio}" >> "$GITHUB_OUTPUT"
