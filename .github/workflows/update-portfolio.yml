@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  actions: write   # needed to trigger the Pages deploy below
 
 jobs:
   update-portfolio:
@@ -14,59 +15,60 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate payload
-        id: validate
+      - name: Validate and write new portfolio.json
         env:
-          PAYLOAD: ${{ toJson(github.event.client_payload) }}
+          # Passed via env, never interpolated into the script body
+          NEW_JSON: ${{ github.event.client_payload.portfolio }}
         run: |
-          if [ -z "${{ github.event.client_payload.portfolio }}" ]; then
+          if [ -z "$NEW_JSON" ]; then
             echo "::error::client_payload.portfolio is missing"
             exit 1
           fi
-          echo "Payload received"
 
-      - name: Backup current portfolio.json
-        run: |
           mkdir -p src/data/old
-          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
           if [ -f src/data/portfolio.json ]; then
-            cp src/data/portfolio.json "src/data/old/portfolio-${TIMESTAMP}.json"
-            echo "Backed up previous version → src/data/old/portfolio-${TIMESTAMP}.json"
-          else
-            echo "No existing portfolio.json found (first run)"
+            TS=$(date -u +"%Y%m%d-%H%M%S")
+            cp src/data/portfolio.json "src/data/old/portfolio-${TS}.json"
+            echo "Backed up previous version"
           fi
 
-      - name: Write new portfolio.json
-        env:
-          NEW_JSON: ${{ github.event.client_payload.portfolio }}
-        run: |
-          python3 -c "
+          python3 - <<'PY'
           import json, os, sys
-          raw = os.environ.get('NEW_JSON', '')
+          raw = os.environ.get("NEW_JSON", "")
           try:
               data = json.loads(raw)
           except Exception as e:
-              print(f'::error::Invalid JSON in payload: {e}', file=sys.stderr)
+              print(f"::error::Invalid JSON in payload: {e}")
               sys.exit(1)
-          for key in ('profile', 'experience', 'projects'):
+          for key in ("profile", "experience", "projects"):
               if key not in data:
-                  print(f'::error::Missing required key: {key}', file=sys.stderr)
+                  print(f"::error::Missing required key: {key}")
                   sys.exit(1)
-          with open('src/data/portfolio.json', 'w', encoding='utf-8') as f:
+          with open("src/data/portfolio.json", "w", encoding="utf-8") as f:
               json.dump(data, f, indent=2, ensure_ascii=False)
-              f.write('\n')
-          print('Wrote src/data/portfolio.json successfully')
-          "
+              f.write("\n")
+          print("Wrote src/data/portfolio.json")
+          PY
 
       - name: Commit and push changes
+        id: commit
         run: |
           git config user.name "Portfolio Admin"
           git config user.email "portfolio-admin@users.noreply.github.com"
           git add src/data/portfolio.json src/data/old/
           if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No changes to commit"
           else
             git commit -m "Update portfolio content via admin"
             git push origin HEAD
-            echo "Pushed successfully"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # Pushes made with GITHUB_TOKEN do NOT trigger other workflows,
+      # so start the Pages deploy explicitly.
+      - name: Trigger Pages deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref "${{ github.event.repository.default_branch }}"
