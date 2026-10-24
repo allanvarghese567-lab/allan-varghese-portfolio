@@ -16,11 +16,13 @@ const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 const normalize = (d: Portfolio): Portfolio => ({ ...d, experience: ensureExperienceIds(normalizeExperience(d.experience)) });
 const cloneInitial = () => normalize(JSON.parse(JSON.stringify(initialData)) as Portfolio);
 
-interface GhSettings { owner: string; repo: string; token: string; }
+interface GhSettings { owner: string; repo: string; token: string; proxyUrl: string; publishKey: string; }
 const DEFAULT_GH: GhSettings = {
   owner: process.env.NEXT_PUBLIC_GITHUB_OWNER || 'allanvarghese567-lab',
   repo: process.env.NEXT_PUBLIC_GITHUB_REPO || 'allan-varghese-portfolio',
   token: '',
+  proxyUrl: process.env.NEXT_PUBLIC_PUBLISH_PROXY_URL || '',
+  publishKey: '',
 };
 
 export default function AdminPage() {
@@ -242,6 +244,35 @@ export default function AdminPage() {
   const publishToGitHub = async () => {
     setError(''); setNotice('');
     if (!experienceOk()) return;
+
+    // Proxy mode: the GitHub PAT lives in the Worker as a secret, not in this browser.
+    if (gh.proxyUrl.trim()) {
+      if (!gh.publishKey.trim()) {
+        setError('PUBLISH KEY is required. Enter it in GitHub credentials (same value as the Worker secret PUBLISH_KEY).');
+        setShowGhSettings(true); return;
+      }
+      setPublishing(true);
+      try {
+        const res = await fetch(gh.proxyUrl.trim(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Publish-Key': gh.publishKey.trim() },
+          body: JSON.stringify({ portfolio: data }),
+        });
+        const j = await res.json().catch(() => ({} as { error?: string; detail?: string }));
+        if (res.ok) {
+          setNotice('Publish request sent. The GitHub Action will back up the old portfolio.json, write the new one, commit and redeploy.');
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(data, null, 2));
+        } else {
+          setError(`Publish failed (${res.status}): ${j.error || 'unknown error'}${j.detail ? ` — ${j.detail}` : ''}`);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? `${e.message} — check the proxy URL and ALLOWED_ORIGIN.` : 'Network error');
+      } finally {
+        setPublishing(false);
+      }
+      return;
+    }
+
     if (!gh.owner.trim() || !gh.repo.trim()) {
       setError('Please set OWNER and REPO in GitHub credentials.');
       setShowGhSettings(true); return;
@@ -358,14 +389,20 @@ export default function AdminPage() {
           <p className="form-help">
             <strong>OWNER</strong> and <strong>REPO</strong> identify the repository.
             <strong> TOKEN</strong> is a fine-grained PAT (Contents: Read and write).
-            Token is stored only in this browser — never commit it or use NEXT_PUBLIC_ for it.
+            If PROXY URL is set, publishing goes through the Worker and OWNER / REPO / TOKEN are ignored.
+            Values are stored only in this browser — never commit them or use NEXT_PUBLIC_ for secrets.
           </p>
           <div className="form-grid">
-            <Field label="OWNER (username or org)" value={gh.owner} onChange={v => saveGhSettings({ ...gh, owner: v })} />
-            <Field label="REPO (repository name)" value={gh.repo} onChange={v => saveGhSettings({ ...gh, repo: v })} />
+            <Field label="PROXY URL (recommended — Cloudflare Worker)" value={gh.proxyUrl} onChange={v => saveGhSettings({ ...gh, proxyUrl: v })} wide />
             <label className="admin-field wide">
-              <span>TOKEN (fine-grained PAT)</span>
-              <input type="password" value={gh.token} onChange={e => saveGhSettings({ ...gh, token: e.target.value })} placeholder="github_pat_... or ghp_..." autoComplete="off" />
+              <span>PUBLISH KEY (only used with PROXY URL)</span>
+              <input type="password" name="portfolio-publish-key" value={gh.publishKey} onChange={e => saveGhSettings({ ...gh, publishKey: e.target.value })} placeholder="the PUBLISH_KEY you set on the Worker" autoComplete="new-password" />
+            </label>
+            <Field label="OWNER (direct mode only)" value={gh.owner} onChange={v => saveGhSettings({ ...gh, owner: v })} />
+            <Field label="REPO (direct mode only)" value={gh.repo} onChange={v => saveGhSettings({ ...gh, repo: v })} />
+            <label className="admin-field wide">
+              <span>TOKEN (direct mode only — fine-grained PAT)</span>
+              <input type="password" name="portfolio-github-pat" value={gh.token} onChange={e => saveGhSettings({ ...gh, token: e.target.value })} placeholder="github_pat_... or ghp_..." autoComplete="new-password" />
             </label>
           </div>
           <p className="form-help">
@@ -613,6 +650,7 @@ export default function AdminPage() {
                   <li><strong>OWNER</strong> — {gh.owner || '(not set)'}</li>
                   <li><strong>REPO</strong> — {gh.repo || '(not set)'}</li>
                   <li><strong>TOKEN</strong> — {gh.token ? 'set in this browser' : '(not set — open GitHub credentials)'}</li>
+                  <li><strong>PROXY</strong> — {gh.proxyUrl ? `${gh.proxyUrl} (key ${gh.publishKey ? 'set' : 'missing'}) — used instead of the above` : '(not set — direct mode)'}</li>
                 </ol>
                 <div className="admin-bottom-actions" style={{ marginTop: 20 }}>
                   <button className="admin-button primary" onClick={publishToGitHub} disabled={publishing}>
@@ -650,7 +688,7 @@ function Field({ label, value, onChange, multiline = false, wide = false, disabl
   return (
     <label className={`admin-field ${wide ? 'wide' : ''}`}>
       <span>{label}</span>
-      {multiline ? <textarea value={value} onChange={e => onChange(e.target.value)} rows={4} disabled={disabled} /> : <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled} placeholder={disabled ? 'Present' : undefined} />}
+      {multiline ? <textarea value={value} onChange={e => onChange(e.target.value)} rows={4} disabled={disabled} /> : <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled} placeholder={disabled ? 'Present' : undefined} autoComplete="off" />}
     </label>
   );
 }
