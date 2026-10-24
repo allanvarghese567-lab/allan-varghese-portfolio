@@ -1,0 +1,9 @@
+name = "portfolio-publish-proxy"
+main = "publish-proxy.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+GITHUB_OWNER = "allanvarghese567-lab"
+GITHUB_REPO = "allan-varghese-portfolio"
+# Origin only (no path). Add http://localhost:3000 for local testing, comma-separated.
+ALLOWED_ORIGIN = "https://allanvarghese567-lab.github.io"
