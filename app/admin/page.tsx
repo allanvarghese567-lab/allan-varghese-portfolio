@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { publishFile } from '@/lib/publish';
 import initialData from '../../src/data/portfolio.json';
 import { countUniqueExperienceMonths, formatExperienceLabel } from '../../src/lib/experience';
 import {
