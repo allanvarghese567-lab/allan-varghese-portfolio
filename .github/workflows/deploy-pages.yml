@@ -24,11 +24,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: npm
+          node-version: "20"
+          # Do not set cache: npm unless package-lock.json is in the repo
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Resolve OWNER / REPO from secrets
         id: creds
@@ -41,7 +41,7 @@ jobs:
 
       - name: Build static site
         env:
-          GITHUB_PAGES: 'true'
+          GITHUB_PAGES: "true"
           NEXT_PUBLIC_ADMIN_PASSWORD: ${{ secrets.NEXT_PUBLIC_ADMIN_PASSWORD }}
           NEXT_PUBLIC_GITHUB_OWNER: ${{ steps.creds.outputs.owner }}
           NEXT_PUBLIC_GITHUB_REPO: ${{ steps.creds.outputs.repo }}
