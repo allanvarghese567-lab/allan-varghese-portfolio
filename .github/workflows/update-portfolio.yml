@@ -1,0 +1,72 @@
+name: Update Portfolio JSON
+
+on:
+  repository_dispatch:
+    types: [update-portfolio]
+
+permissions:
+  contents: write
+
+jobs:
+  update-portfolio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate payload
+        id: validate
+        env:
+          PAYLOAD: ${{ toJson(github.event.client_payload) }}
+        run: |
+          if [ -z "${{ github.event.client_payload.portfolio }}" ]; then
+            echo "::error::client_payload.portfolio is missing"
+            exit 1
+          fi
+          echo "Payload received"
+
+      - name: Backup current portfolio.json
+        run: |
+          mkdir -p src/data/old
+          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+          if [ -f src/data/portfolio.json ]; then
+            cp src/data/portfolio.json "src/data/old/portfolio-${TIMESTAMP}.json"
+            echo "Backed up previous version → src/data/old/portfolio-${TIMESTAMP}.json"
+          else
+            echo "No existing portfolio.json found (first run)"
+          fi
+
+      - name: Write new portfolio.json
+        env:
+          NEW_JSON: ${{ github.event.client_payload.portfolio }}
+        run: |
+          python3 -c "
+          import json, os, sys
+          raw = os.environ.get('NEW_JSON', '')
+          try:
+              data = json.loads(raw)
+          except Exception as e:
+              print(f'::error::Invalid JSON in payload: {e}', file=sys.stderr)
+              sys.exit(1)
+          for key in ('profile', 'experience', 'projects'):
+              if key not in data:
+                  print(f'::error::Missing required key: {key}', file=sys.stderr)
+                  sys.exit(1)
+          with open('src/data/portfolio.json', 'w', encoding='utf-8') as f:
+              json.dump(data, f, indent=2, ensure_ascii=False)
+              f.write('\n')
+          print('Wrote src/data/portfolio.json successfully')
+          "
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "Portfolio Admin"
+          git config user.email "portfolio-admin@users.noreply.github.com"
+          git add src/data/portfolio.json src/data/old/
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update portfolio content via admin"
+            git push origin HEAD
+            echo "Pushed successfully"
+          fi
