@@ -15,7 +15,11 @@ const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || '';
 const cloneInitial = () => JSON.parse(JSON.stringify(initialData)) as Portfolio;
 
 interface GhSettings { owner: string; repo: string; token: string; }
-const DEFAULT_GH: GhSettings = { owner: 'allanvarghese567-lab', repo: '', token: '' };
+const DEFAULT_GH: GhSettings = {
+  owner: process.env.NEXT_PUBLIC_GITHUB_OWNER || 'allanvarghese567-lab',
+  repo: process.env.NEXT_PUBLIC_GITHUB_REPO || 'allan-varghese-portfolio',
+  token: '',
+};
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false);
@@ -77,7 +81,7 @@ export default function AdminPage() {
 
   const persistDraft = () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data, null, 2));
-    setNotice('Draft saved in this browser. Use Publish to GitHub or Download to update the live site.');
+    setNotice('Draft saved in this browser.');
     setError('');
   };
 
@@ -133,11 +137,11 @@ export default function AdminPage() {
   const publishToGitHub = async () => {
     setError(''); setNotice('');
     if (!gh.owner.trim() || !gh.repo.trim()) {
-      setError('Please set GitHub owner and repository name in Settings.');
+      setError('Please set OWNER and REPO in GitHub credentials.');
       setShowGhSettings(true); return;
     }
     if (!gh.token.trim()) {
-      setError('A GitHub Personal Access Token is required.');
+      setError('TOKEN is required. Paste a fine-grained PAT with Contents: Read and write.');
       setShowGhSettings(true); return;
     }
     setPublishing(true);
@@ -162,8 +166,8 @@ export default function AdminPage() {
         const body = await res.text();
         let msg = `GitHub API error ${res.status}`;
         try { const j = JSON.parse(body); if (j.message) msg += `: ${j.message}`; } catch { if (body) msg += `: ${body.slice(0, 200)}`; }
-        if (res.status === 401 || res.status === 403) msg += ' — Check token permissions (Contents: Read and write).';
-        if (res.status === 404) msg += ' — Repository not found.';
+        if (res.status === 401 || res.status === 403) msg += ' — Check TOKEN permissions (Contents: Read and write).';
+        if (res.status === 404) msg += ' — Repository not found. Check OWNER and REPO.';
         setError(msg);
       }
     } catch (e) {
@@ -203,8 +207,7 @@ export default function AdminPage() {
             <div className="admin-notice error" style={{ marginBottom: 16 }}>
               <strong>Password not configured.</strong><br />
               Create <code>.env.local</code> with:<br />
-              <code>NEXT_PUBLIC_ADMIN_PASSWORD=your-strong-password</code><br />
-              Then restart / redeploy.
+              <code>NEXT_PUBLIC_ADMIN_PASSWORD=your-strong-password</code>
             </div>
           )}
           <form onSubmit={handleLogin} className="admin-login-form">
@@ -237,7 +240,7 @@ export default function AdminPage() {
       <header className="admin-header">
         <a href="/" className="admin-back"><ArrowLeft size={18} /> Back to portfolio</a>
         <div className="admin-header-actions">
-          <button className="admin-button secondary" onClick={() => setShowGhSettings(v => !v)} title="GitHub settings"><Settings size={16} /> GitHub settings</button>
+          <button className="admin-button secondary" onClick={() => setShowGhSettings(v => !v)} title="GitHub credentials"><Settings size={16} /> GitHub credentials</button>
           <button className="admin-button secondary" onClick={resetToBundled}><RotateCcw size={16} /> Reset</button>
           <button className="admin-button secondary" onClick={handleLogout} title="Log out"><LogOut size={16} /> Log out</button>
         </div>
@@ -245,16 +248,24 @@ export default function AdminPage() {
 
       {showGhSettings && (
         <div className="admin-gh-panel">
-          <h3>GitHub publish settings</h3>
-          <p className="form-help">Fine-grained PAT with <strong>Contents: Read and write</strong> required. Token stored only in browser localStorage.</p>
+          <h3>GitHub credentials</h3>
+          <p className="form-help">
+            <strong>OWNER</strong> and <strong>REPO</strong> identify the repository.
+            <strong> TOKEN</strong> is a fine-grained PAT (Contents: Read and write).
+            Token is stored only in this browser — never commit it or use NEXT_PUBLIC_ for it.
+          </p>
           <div className="form-grid">
-            <Field label="GitHub owner" value={gh.owner} onChange={v => saveGhSettings({ ...gh, owner: v })} />
-            <Field label="Repository name" value={gh.repo} onChange={v => saveGhSettings({ ...gh, repo: v })} />
+            <Field label="OWNER (username or org)" value={gh.owner} onChange={v => saveGhSettings({ ...gh, owner: v })} />
+            <Field label="REPO (repository name)" value={gh.repo} onChange={v => saveGhSettings({ ...gh, repo: v })} />
             <label className="admin-field wide">
-              <span>Personal Access Token</span>
+              <span>TOKEN (fine-grained PAT)</span>
               <input type="password" value={gh.token} onChange={e => saveGhSettings({ ...gh, token: e.target.value })} placeholder="github_pat_... or ghp_..." autoComplete="off" />
             </label>
           </div>
+          <p className="form-help">
+            Create TOKEN → Account Settings → Developer settings → Personal access tokens → Fine-grained tokens.
+            Repo: allan-varghese-portfolio only. Permission: Contents → Read and write.
+          </p>
         </div>
       )}
 
@@ -306,7 +317,7 @@ export default function AdminPage() {
                 ))}
               </div>
               <button className="admin-button secondary" onClick={() => addItem('experience')}><Plus size={16} /> Add experience</button>
-              <p className="form-help">Total: <strong>{formatExperienceLabel(months)}</strong>. Overlaps are deduplicated.</p>
+              <p className="form-help">Total: <strong>{formatExperienceLabel(months)}</strong></p>
             </>
           )}
 
@@ -402,21 +413,20 @@ export default function AdminPage() {
 
           {active === 'publish' && (
             <>
-              <SectionTitle title="Publish to GitHub" sub="Trigger Action: backup old JSON, write new, commit & push." />
+              <SectionTitle title="Publish to GitHub" sub="Uses OWNER, REPO, TOKEN credentials to trigger the Action." />
               <div className="admin-publish-card">
-                <h3>How it works</h3>
+                <h3>Credentials required</h3>
                 <ol>
-                  <li>Set owner, repo and token in GitHub settings.</li>
-                  <li>Click <strong>Publish to GitHub</strong>.</li>
-                  <li>Workflow backs up to <code>src/data/old/</code>, writes <code>portfolio.json</code>, commits and pushes.</li>
-                  <li>GitHub Pages / host redeploys from the new commit.</li>
+                  <li><strong>OWNER</strong> — {gh.owner || '(not set)'}</li>
+                  <li><strong>REPO</strong> — {gh.repo || '(not set)'}</li>
+                  <li><strong>TOKEN</strong> — {gh.token ? 'set in this browser' : '(not set — open GitHub credentials)'}</li>
                 </ol>
                 <div className="admin-bottom-actions" style={{ marginTop: 20 }}>
                   <button className="admin-button primary" onClick={publishToGitHub} disabled={publishing}>
                     {publishing ? <><Loader2 size={16} className="spin" /> Publishing…</> : <><Github size={16} /> Publish to GitHub</>}
                   </button>
-                  <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save browser draft</button>
-                  <button className="admin-button secondary" onClick={downloadJson}><Download size={16} /> Download portfolio.json</button>
+                  <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save draft</button>
+                  <button className="admin-button secondary" onClick={downloadJson}><Download size={16} /> Download JSON</button>
                 </div>
               </div>
             </>
@@ -424,8 +434,8 @@ export default function AdminPage() {
 
           {active !== 'publish' && (
             <div className="admin-bottom-actions">
-              <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save browser draft</button>
-              <button className="admin-button primary" onClick={downloadJson}><Download size={16} /> Download portfolio.json</button>
+              <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save draft</button>
+              <button className="admin-button primary" onClick={downloadJson}><Download size={16} /> Download JSON</button>
               <button className="admin-button secondary" onClick={publishToGitHub} disabled={publishing}>
                 {publishing ? <><Loader2 size={16} className="spin" /> Publishing…</> : <><Github size={16} /> Publish to GitHub</>}
               </button>
@@ -434,7 +444,7 @@ export default function AdminPage() {
         </section>
       </div>
 
-      <footer className="admin-footer">Protected admin · Local JSON + GitHub Action · Old versions under <code>src/data/old/</code></footer>
+      <footer className="admin-footer">Credentials: OWNER + REPO + TOKEN · Admin password separate · Old JSON under src/data/old/</footer>
     </main>
   );
 }
