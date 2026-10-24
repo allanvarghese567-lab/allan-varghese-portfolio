@@ -1,5 +1,7 @@
 # Allan Varghese — JSON-driven developer portfolio
 
+**Live:** [https://allanvarghese567-lab.github.io/allan-varghese-portfolio/](https://allanvarghese567-lab.github.io/allan-varghese-portfolio/)
+
 Premium dark / emerald responsive portfolio built with Next.js 15, React 19, TypeScript, and Lucide icons.
 
 ## Features
@@ -115,6 +117,12 @@ Experience is based on month-level dates. Current roles use the current month. E
 
 Role dates, degree, grade, current company, and passed Angular assessment are based on screenshots supplied by Allan. Project summaries and statuses are descriptive placeholders based on the project concepts/repositories discussed; confirm completion and public links before publishing. No unverified performance metrics are claimed.
 
+## Live site
+
+**GitHub Pages:** [https://allanvarghese567-lab.github.io/allan-varghese-portfolio/](https://allanvarghese567-lab.github.io/allan-varghese-portfolio/)
+
+**Admin:** [https://allanvarghese567-lab.github.io/allan-varghese-portfolio/admin](https://allanvarghese567-lab.github.io/allan-varghese-portfolio/admin)
+
 ## Deploy
 
 ### GitHub Pages (static)
@@ -127,11 +135,41 @@ This repo is set up for GitHub Pages (no `gh-pages` branch — deploy via Action
    - `NEXT_PUBLIC_GITHUB_OWNER` = `allanvarghese567-lab`
    - `NEXT_PUBLIC_GITHUB_REPO` = `allan-varghese-portfolio`
 3. Push to `main` (or run workflow **Deploy to GitHub Pages**)
-4. Site: `https://allanvarghese567-lab.github.io/allan-varghese-portfolio/`
+4. Site: [https://allanvarghese567-lab.github.io/allan-varghese-portfolio/](https://allanvarghese567-lab.github.io/allan-varghese-portfolio/)
 
 `next.config.ts` uses `output: 'export'`. The deploy workflow sets `GITHUB_PAGES=true` so `basePath` is applied, and injects OWNER/REPO from the secrets above.
 
 Publish from `/admin` still needs a **browser TOKEN** (PAT in GitHub credentials), because Pages has no server API.
+
+### Custom domain (optional)
+
+GitHub Pages can serve the site from your own domain instead of `allanvarghese567-lab.github.io`.
+
+**Suggested domains for this portfolio**
+
+| Style | Examples |
+|--------|----------|
+| Name | `allanvarghese.dev`, `allanvarghese.com`, `allanvarghese.in` |
+| Short / personal | `hiallan.dev`, `heyallan.dev`, `builtbyallan.dev` |
+| Role-focused | `allan.codes`, `allanbuilds.dev`, `fullstackallan.dev` |
+| India / local | `allanvarghese.in`, `allan.kerala.dev` (if available) |
+| Product-style | `meridian.dev` only if it matches a brand you own long-term |
+
+Practical picks: **`allanvarghese.dev`** or **`allanvarghese.com`** — clear, professional, easy to put on a résumé and LinkedIn.
+
+**How to attach a custom domain**
+
+1. Buy the domain (Namecheap, Google Domains / Squarespace, Cloudflare, Porkbun, etc.).
+2. Repo → **Settings** → **Pages** → **Custom domain** → enter e.g. `allanvarghese.dev` → Save.
+3. At your DNS provider, add:
+   - **Apex (`allanvarghese.dev`):** A records to GitHub Pages IPs:
+     - `185.199.108.153`
+     - `185.199.109.153`
+     - `185.199.110.153`
+     - `185.199.111.153`
+   - **Or www:** CNAME `www` → `allanvarghese567-lab.github.io`
+4. Wait for DNS (often 5–30 minutes). Enable **Enforce HTTPS** in Pages settings when available.
+5. If the site is on a **custom domain at the root**, you may remove `basePath` / `assetPrefix` from `next.config.ts` (or stop setting `GITHUB_PAGES=true`) so assets load from `/` instead of `/allan-varghese-portfolio/`.
 
 ### Vercel / Node host
 
