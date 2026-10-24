@@ -30,12 +30,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Resolve OWNER / REPO from secrets
+        id: creds
+        env:
+          SECRET_OWNER: ${{ secrets.GITHUB_OWNER }}
+          SECRET_REPO: ${{ secrets.GITHUB_REPO }}
+        run: |
+          echo "owner=${SECRET_OWNER:-allanvarghese567-lab}" >> "$GITHUB_OUTPUT"
+          echo "repo=${SECRET_REPO:-allan-varghese-portfolio}" >> "$GITHUB_OUTPUT"
+
       - name: Build static site
         env:
           GITHUB_PAGES: 'true'
           NEXT_PUBLIC_ADMIN_PASSWORD: ${{ secrets.NEXT_PUBLIC_ADMIN_PASSWORD }}
-          NEXT_PUBLIC_GITHUB_OWNER: allanvarghese567-lab
-          NEXT_PUBLIC_GITHUB_REPO: allan-varghese-portfolio
+          NEXT_PUBLIC_GITHUB_OWNER: ${{ steps.creds.outputs.owner }}
+          NEXT_PUBLIC_GITHUB_REPO: ${{ steps.creds.outputs.repo }}
         run: npm run build
 
       - name: Upload Pages artifact
