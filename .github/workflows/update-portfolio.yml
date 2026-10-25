@@ -1,0 +1,46 @@
+name: Update portfolio content
+
+# Triggered by the /admin page (or the Cloudflare Worker) via repository_dispatch.
+on:
+  repository_dispatch:
+    types: [update-portfolio]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Back up old file and write new portfolio.json
+        env:
+          PORTFOLIO: ${{ github.event.client_payload.portfolio }}
+        run: |
+          mkdir -p src/data/old
+          if [ -f src/data/portfolio.json ]; then
+            cp src/data/portfolio.json "src/data/old/portfolio-$(date -u +%Y%m%d-%H%M%S).json"
+          fi
+          # Validate + pretty-print; fails (and changes nothing) if the payload is not valid JSON
+          printf '%s' "$PORTFOLIO" | python3 -c "import json,sys; print(json.dumps(json.load(sys.stdin), indent=2, ensure_ascii=False))" > src/data/portfolio.json.new
+          mv src/data/portfolio.json.new src/data/portfolio.json
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git commit -m "Update portfolio content via admin"
+          git push
+
+      # Pushes made with GITHUB_TOKEN do not trigger other workflows, so start the deploy explicitly.
+      - name: Trigger deploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref "${{ github.event.repository.default_branch }}"
