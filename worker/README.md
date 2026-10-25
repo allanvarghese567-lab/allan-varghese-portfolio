@@ -16,3 +16,25 @@ a PUBLISH KEY to this Worker; the Worker checks the key and triggers the
 7. In /admin → GitHub credentials, enter PUBLISH KEY (same string as step 4). Publish.
 
 Delete the old `PORTFOLIO_GITHUB_TOKEN` repository variable and revoke any PAT that was stored in it.
+
+## Deploying from Cloudflare's git integration (dashboard)
+
+If you connect this repo to a Worker in the Cloudflare dashboard (Workers & Pages -> your Worker -> Settings -> Builds):
+
+- **Root directory:** `worker`  (the repo root is the Next.js site, which must NOT be built here)
+- **Build command:** leave empty
+- **Deploy command:** `npx wrangler deploy`
+- **Worker name:** must match `name` in `worker/wrangler.toml` (`allan-varghese-portfolio`)
+
+`GITHUB_OWNER`, `GITHUB_REPO` and `ALLOWED_ORIGIN` come from `wrangler.toml` on every deploy.
+Add only the two secrets in the dashboard (Settings -> Variables and Secrets -> type **Secret**):
+`GITHUB_TOKEN` and `PUBLISH_KEY`.
+
+## Troubleshooting
+
+| Message in /admin | Meaning |
+|---|---|
+| `GitHub API error 401: Bad credentials` (direct mode) | The TOKEN field holds an expired/invalid/empty token |
+| `Publish failed (401): Invalid publish key` | PUBLISH KEY in /admin differs from the Worker secret `PUBLISH_KEY` |
+| `Publish failed (502): GitHub API 401` | The Worker secret `GITHUB_TOKEN` is bad; run `wrangler secret put GITHUB_TOKEN` again |
+| `Publish failed (403): Origin not allowed` | Publish from the origin listed in `ALLOWED_ORIGIN` |
