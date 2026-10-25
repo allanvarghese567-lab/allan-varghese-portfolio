@@ -1,4 +1,5 @@
-name = "portfolio-publish-proxy"
+# Must match the Worker name in the Cloudflare dashboard (Workers & Pages).
+name = "allan-varghese-portfolio"
 main = "publish-proxy.js"
 compatibility_date = "2025-01-01"
 
