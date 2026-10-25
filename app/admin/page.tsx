@@ -393,26 +393,17 @@ export default function AdminPage() {
             Values are stored only in this browser — never commit them or use NEXT_PUBLIC_ for secrets.
           </p>
           <div className="form-grid">
-            <Field label="PROXY URL (recommended — Cloudflare Worker)" value={gh.proxyUrl} onChange={v => saveGhSettings({ ...gh, proxyUrl: v })} wide />
-            <label className="admin-field wide">
-              <span>PUBLISH KEY (only used with PROXY URL)</span>
-              <input type="password" name="portfolio-publish-key" value={gh.publishKey} onChange={e => saveGhSettings({ ...gh, publishKey: e.target.value })} placeholder="the PUBLISH_KEY you set on the Worker" autoComplete="new-password" />
-            </label>
-            <Field label="OWNER (direct mode only)" value={gh.owner} onChange={v => saveGhSettings({ ...gh, owner: v })} />
-            <Field label="REPO (direct mode only)" value={gh.repo} onChange={v => saveGhSettings({ ...gh, repo: v })} />
-            <label className="admin-field wide">
-              <span>TOKEN (direct mode only — fine-grained PAT)</span>
-              <input type="password" name="portfolio-github-pat" value={gh.token} onChange={e => saveGhSettings({ ...gh, token: e.target.value })} placeholder="github_pat_... or ghp_..." autoComplete="new-password" />
-            </label>
+            <Field label="PROXY URL (optional)" value={gh.proxyUrl} onChange={v => saveGhSettings({ ...gh, proxyUrl: v })} placeholder="https://your-worker.workers.dev" />
+            <Field label="PUBLISH KEY" value={gh.publishKey} onChange={v => saveGhSettings({ ...gh, publishKey: v })} placeholder="Same as Worker secret PUBLISH_KEY" type="password" />
+            <Field label="OWNER" value={gh.owner} onChange={v => saveGhSettings({ ...gh, owner: v })} placeholder="username or org" />
+            <Field label="REPO" value={gh.repo} onChange={v => saveGhSettings({ ...gh, repo: v })} placeholder="repo-name" />
+            <Field label="TOKEN" value={gh.token} onChange={v => saveGhSettings({ ...gh, token: v })} placeholder="github_pat_…" type="password" />
           </div>
-          <p className="form-help">
-            Create TOKEN → Account Settings → Developer settings → Personal access tokens → Fine-grained tokens.
-            Repo: allan-varghese-portfolio only. Permission: Contents → Read and write.
-          </p>
         </div>
       )}
 
-      {(notice || error) && <div className={`admin-notice ${error ? 'error' : ''}`}>{error || notice}</div>}
+      {notice && <div className="admin-notice success">{notice}</div>}
+      {error && <div className="admin-notice error">{error}</div>}
 
       <div className="admin-layout">
         <nav className="admin-nav">
@@ -421,295 +412,220 @@ export default function AdminPage() {
           ))}
         </nav>
 
-        <section className="admin-content" onSelect={rememberField} onBlurCapture={rememberField} onKeyUp={rememberField} onClick={rememberField}>
-          {active !== 'raw' && active !== 'publish' && (
-            <div className="insert-bar">
-              <span className="insert-bar-label">Insert at cursor</span>
-              {INSERT_TOKENS.map(t => (
-                <button
-                  key={t.token}
-                  type="button"
-                  className="insert-chip"
-                  title={`Inserts ${t.token}`}
-                  onPointerDown={e => e.preventDefault()}
-                  onClick={() => insertAtCursor(t.token)}
-                >
-                  <Plus size={12} /> {t.label} <small>{resolveTokens(t.token, tokenCtx) || '—'}</small>
-                </button>
-              ))}
-              <p className="insert-bar-help">Click inside any text field, then press a button. The placeholder (e.g. {'{{years}}'}) is replaced with the live value on the site.</p>
-            </div>
-          )}
+        <div className="admin-content" onFocus={rememberField} onClick={rememberField}>
           {active === 'profile' && (
-            <>
-              <SectionTitle title="Profile & hero" sub="Name, headline, location and hero text." />
+            <section className="admin-section">
+              <h2>Profile</h2>
               <div className="form-grid">
-                {([['name','Full name'],['headline','Headline'],['heroTitle','Hero title'],['heroSummary','Hero summary'],['location','Location'],['email','Email'],['linkedin','LinkedIn URL'],['github','GitHub URL'],['experienceStart','Experience start (YYYY-MM)']] as const).map(([k,l]) => (
-                  <Field key={k} label={l} value={(data.profile as any)[k] ?? ''} onChange={v => setPath('profile', k, v)} wide={k==='headline'||k==='heroTitle'||k==='heroSummary'} multiline={k==='heroSummary'} />
-                ))}
+                <Field label="Name" value={data.profile.name} onChange={v => setPath('profile', 'name', v)} />
+                <Field label="Title" value={data.profile.title} onChange={v => setPath('profile', 'title', v)} />
+                <Field label="Location" value={data.profile.location} onChange={v => setPath('profile', 'location', v)} />
+                <Field label="Email" value={data.profile.email} onChange={v => setPath('profile', 'email', v)} />
+                <Field label="Phone" value={data.profile.phone || ''} onChange={v => setPath('profile', 'phone', v)} />
+                <Field label="Website" value={data.profile.website || ''} onChange={v => setPath('profile', 'website', v)} />
+                <Field label="GitHub" value={data.profile.github || ''} onChange={v => setPath('profile', 'github', v)} />
+                <Field label="LinkedIn" value={data.profile.linkedin || ''} onChange={v => setPath('profile', 'linkedin', v)} />
+                <Field label="Tagline" value={data.profile.tagline || ''} onChange={v => setPath('profile', 'tagline', v)} wide />
               </div>
-            </>
+            </section>
           )}
 
           {active === 'about' && (
-            <>
-              <SectionTitle title="About section" sub="Biography and focus areas." />
-              <Field label="Section heading" value={data.about.heading} onChange={v => setPath('about','heading',v)} wide />
-              <Field label="Summary" value={data.about.summary} onChange={v => setPath('about','summary',v)} multiline wide />
-              <p className="form-help">Years of experience is added automatically (earliest start date → present). Preview: <em>{resolveTokens(withExperience(data.about.summary, months), tokenCtx)}</em></p>
-              <ArrayField label="Focus areas (one per line)" value={data.about.focus} onChange={v => setData(p => ({ ...p, about: { ...p.about, focus: v.split('\n').map(x => x.trim()).filter(Boolean) } }))} />
-            </>
+            <section className="admin-section">
+              <h2>About</h2>
+              <Field label="Summary" value={data.about.summary} onChange={v => setPath('about', 'summary', v)} multiline />
+              <Field label="Highlights (one per line)" value={(data.about.highlights || []).join('\n')} onChange={v => setData(prev => ({ ...prev, about: { ...prev.about, highlights: v.split('\n').map(s => s.trim()).filter(Boolean) } }))} multiline />
+            </section>
           )}
 
           {active === 'experience' && (
-            <>
-              <SectionTitle title="Experience timeline" sub="Dates use YYYY-MM. Pick a role type — only one role can be the Current role (no end date)." />
-              <div className="admin-records">
-                {data.experience.map((job, i) => (
-                  <div className="admin-record" key={i}>
-                    <div className="record-head"><strong>Role {String(i+1).padStart(2,'0')}</strong>
-                      <button className="icon-button" onClick={() => removeItem('experience', i)} aria-label="Delete role"><Trash2 size={16} /></button>
-                    </div>
-                    <div className="form-grid">
-                      <label className="admin-field">
-                        <span>Role type</span>
-                        <select value={job.roleType} onChange={e => setRoleType(i, e.target.value)}>
-                          {ROLE_TYPES.map(t => (
-                            <option key={t} value={t} disabled={t === CURRENT_ROLE && data.experience.some((j, k) => k !== i && j.roleType === CURRENT_ROLE)}>
-                              {t}{t === CURRENT_ROLE && data.experience.some((j, k) => k !== i && j.roleType === CURRENT_ROLE) ? ' (already used)' : ''}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      {([['role','Role'],['company','Company'],['start','Start month'],['end','End month'],['location','Location'],['description','Description']] as const).map(([k,l]) => (
-                        <Field
-                          key={k}
-                          label={k==='end' && job.roleType===CURRENT_ROLE ? 'End month (Present)' : l}
-                          value={k==='end' && job.roleType===CURRENT_ROLE ? '' : (job as any)[k] ?? ''}
-                          onChange={v => updateItem('experience', i, k, v)}
-                          disabled={k==='end' && job.roleType===CURRENT_ROLE}
-                          wide={k==='description'}
-                          multiline={k==='description'}
-                        />
-                      ))}
-                    </div>
-                  </div>
+            <section className="admin-section">
+              <div className="section-header">
+                <h2>Experience</h2>
+                <button className="admin-button secondary" onClick={() => addItem('experience')}><Plus size={16} /> Add role</button>
+              </div>
+              <p className="form-help">Total experience: {formatExperienceLabel(months)}. Use insert tokens in description fields.</p>
+              <div className="token-bar">
+                {INSERT_TOKENS.map(t => (
+                  <button key={t.token} type="button" className="token-btn" onClick={() => insertAtCursor(t.token)} title={t.hint}>{t.label}</button>
                 ))}
               </div>
-              <button className="admin-button secondary" onClick={() => addItem('experience')}><Plus size={16} /> Add experience</button>
-              <p className="form-help">Total: <strong>{formatExperienceLabel(months)}</strong></p>
-            </>
+              {data.experience.map((job, i) => (
+                <div key={job.id || i} className="admin-card">
+                  <div className="card-header">
+                    <strong>{job.role || 'Untitled role'}</strong>
+                    <button className="icon-btn danger" onClick={() => removeItem('experience', i)} title="Remove"><Trash2 size={16} /></button>
+                  </div>
+                  <div className="form-grid">
+                    <Field label="Role" value={job.role} onChange={v => updateItem('experience', i, 'role', v)} />
+                    <Field label="Company" value={job.company} onChange={v => updateItem('experience', i, 'company', v)} />
+                    <label className="admin-field">
+                      <span>Role type</span>
+                      <select value={job.roleType || 'Previous role'} onChange={e => setRoleType(i, e.target.value)}>
+                        {ROLE_TYPES.map(r => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                    </label>
+                    <Field label="Start (YYYY-MM)" value={job.start || ''} onChange={v => updateItem('experience', i, 'start', v)} />
+                    <Field label="End (YYYY-MM or empty if current)" value={job.end || ''} onChange={v => updateItem('experience', i, 'end', v)} />
+                    <Field label="Location" value={job.location || ''} onChange={v => updateItem('experience', i, 'location', v)} />
+                    <Field label="Description" value={job.description || ''} onChange={v => updateItem('experience', i, 'description', v)} multiline wide />
+                  </div>
+                </div>
+              ))}
+            </section>
           )}
 
           {active === 'skills' && (
-            <>
-              <SectionTitle title="Skills" sub="Skill groups. Renaming a skill keeps its project links." />
-              {data.skills.map((group, i) => (
-                <div className="admin-record" key={i}>
-                  <div className="record-head"><strong>Group {i+1}</strong>
-                    <button className="icon-button" onClick={() => removeItem('skills', i)} aria-label="Delete"><Trash2 size={16} /></button>
+            <section className="admin-section">
+              <div className="section-header">
+                <h2>Skills</h2>
+                <button className="admin-button secondary" onClick={() => setData(prev => ({ ...prev, skills: [...prev.skills, { group: '', items: [] }] }))}><Plus size={16} /> Add group</button>
+              </div>
+              {data.skills.map((g, i) => (
+                <div key={i} className="admin-card">
+                  <div className="card-header">
+                    <Field label="Group name" value={g.group} onChange={v => setData(prev => { const skills = [...prev.skills]; skills[i] = { ...skills[i], group: v }; return { ...prev, skills }; })} />
+                    <button className="icon-btn danger" onClick={() => removeItem('skills', i)} title="Remove group"><Trash2 size={16} /></button>
                   </div>
-                  <Field label="Group name" value={group.group} onChange={v => setData(p => ({ ...p, skills: p.skills.map((g,j) => i===j ? { ...g, group: v } : g) }))} />
-                  <ArrayField label="Skills (one per line)" value={group.items} onChange={v => editSkillItems(i, v)} />
+                  <Field label="Skills (comma or newline separated)" value={(g.items || []).join(', ')} onChange={v => editSkillItems(i, v)} multiline />
                 </div>
               ))}
-              <button className="admin-button secondary" onClick={() => setData(p => ({ ...p, skills: [...p.skills, { group: '', items: [] }] }))}><Plus size={16} /> Add skill group</button>
-            </>
+            </section>
           )}
 
           {active === 'projects' && (
-            <>
-              <SectionTitle title="Projects" sub="Project details and status." />
-              <div className="admin-records">
-                {data.projects.map((p, i) => (
-                  <div className="admin-record" key={i}>
-                    <div className="record-head"><strong>Project {String(i+1).padStart(2,'0')}</strong>
-                      <button className="icon-button" onClick={() => removeItem('projects', i)} aria-label="Delete"><Trash2 size={16} /></button>
-                    </div>
-                    <div className="form-grid">
-                      {([['name','Name'],['category','Category'],['status','Status'],['url','URL'],['description','Description']] as const).map(([k,l]) => (
-                        <Field key={k} label={l} value={(p as any)[k] ?? ''} onChange={v => updateItem('projects', i, k, v)} wide={k==='description'} multiline={k==='description'} />
-                      ))}
-                      <ArrayField label="Technologies (one per line)" value={p.technologies || []} onChange={v => setData(prev => { const list = [...prev.projects]; list[i] = { ...list[i], technologies: v.split('\n').map(s => s.trim()).filter(Boolean) }; return { ...prev, projects: list }; })} />
-
-                      <label className="admin-field wide">
-                        <span>Linked experience (optional)</span>
-                        <select value={p.experienceId ?? ''} onChange={e => setProjectExperience(i, e.target.value || null)}>
-                          <option value="">Not connected</option>
-                          {data.experience.map((job, k) => (
-                            <option key={job.id ?? k} value={job.id}>{experienceLabel(job)}</option>
-                          ))}
-                          {p.experienceId && !data.experience.some(j => j.id === p.experienceId) && (
-                            <option value={p.experienceId}>⚠ Missing experience (removed)</option>
-                          )}
-                        </select>
-                      </label>
-
-                      {(() => {
-                        const selected = p.skills ?? [];
-                        const known = allSkillNames(data.skills);
-                        const missing = selected.filter(s => !known.includes(s));
-                        return (
-                          <div className="admin-field wide">
-                            <span>Linked skills (optional) — tap to connect{selected.length ? ` · ${selected.length} selected` : ''}</span>
-                            <div className="skill-picker">
-                              {known.length === 0 && <p className="form-help">Add skills in the Skills tab first.</p>}
-                              {data.skills.map(g => g.items.length > 0 ? (
-                                <div key={g.group} className="pick-group">
-                                  <small>{g.group || 'Ungrouped'}</small>
-                                  <div className="pick-chips">
-                                    {g.items.map(name => (
-                                      <button key={name} type="button" className={`pick-chip${selected.includes(name) ? ' on' : ''}`} aria-pressed={selected.includes(name)} onClick={() => toggleProjectSkill(i, name)}>{name}</button>
-                                    ))}
-                                  </div>
-                                </div>
-                              ) : null)}
-                              {missing.length > 0 && (
-                                <div className="pick-group">
-                                  <small>No longer in Skills — tap to remove</small>
-                                  <div className="pick-chips">
-                                    {missing.map(name => (
-                                      <button key={name} type="button" className="pick-chip missing" onClick={() => toggleProjectSkill(i, name)}>⚠ {name}</button>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })()}
+            <section className="admin-section">
+              <div className="section-header">
+                <h2>Projects</h2>
+                <button className="admin-button secondary" onClick={() => addItem('projects')}><Plus size={16} /> Add project</button>
+              </div>
+              {data.projects.map((p, i) => (
+                <div key={i} className="admin-card">
+                  <div className="card-header">
+                    <strong>{p.name || 'Untitled project'}</strong>
+                    <button className="icon-btn danger" onClick={() => removeItem('projects', i)} title="Remove"><Trash2 size={16} /></button>
+                  </div>
+                  <div className="form-grid">
+                    <Field label="Name" value={p.name} onChange={v => updateItem('projects', i, 'name', v)} />
+                    <Field label="Category" value={p.category || ''} onChange={v => updateItem('projects', i, 'category', v)} />
+                    <Field label="Status" value={p.status || ''} onChange={v => updateItem('projects', i, 'status', v)} />
+                    <Field label="URL" value={p.url || ''} onChange={v => updateItem('projects', i, 'url', v)} />
+                    <Field label="Technologies (comma-separated)" value={(p.technologies || []).join(', ')} onChange={v => setData(prev => { const projects = [...prev.projects]; projects[i] = { ...projects[i], technologies: toList(v) }; return { ...prev, projects }; })} wide />
+                    <Field label="Description" value={p.description || ''} onChange={v => updateItem('projects', i, 'description', v)} multiline wide />
+                    <label className="admin-field wide">
+                      <span>Linked experience</span>
+                      <select value={p.experienceId || ''} onChange={e => setProjectExperience(i, e.target.value || null)}>
+                        <option value="">— None —</option>
+                        {data.experience.map(job => (
+                          <option key={job.id} value={job.id}>{experienceLabel(job)}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <div className="admin-field wide">
+                      <span>Skills used</span>
+                      <div className="chip-row">
+                        {allSkillNames(data.skills).map(skill => (
+                          <button key={skill} type="button" className={(p.skills || []).includes(skill) ? 'chip active' : 'chip'} onClick={() => toggleProjectSkill(i, skill)}>{skill}</button>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-              <button className="admin-button secondary" onClick={() => addItem('projects')}><Plus size={16} /> Add project</button>
-            </>
+                </div>
+              ))}
+            </section>
           )}
 
           {active === 'achievements' && (
-            <>
-              <SectionTitle title="Achievements & education" sub="Degrees and milestones." />
-              <div className="admin-records">
-                {data.achievements.map((a, i) => (
-                  <div className="admin-record" key={i}>
-                    <div className="record-head"><strong>Achievement {String(i+1).padStart(2,'0')}</strong>
-                      <button className="icon-button" onClick={() => removeItem('achievements', i)} aria-label="Delete"><Trash2 size={16} /></button>
-                    </div>
-                    <div className="form-grid">
-                      {([['title','Title'],['detail','Detail'],['organization','Organization'],['date','Date'],['metric','Metric']] as const).map(([k,l]) => (
-                        <Field key={k} label={l} value={(a as any)[k] ?? ''} onChange={v => updateItem('achievements', i, k, v)} wide={k==='detail'} />
-                      ))}
-                    </div>
-                  </div>
-                ))}
+            <section className="admin-section">
+              <div className="section-header">
+                <h2>Achievements</h2>
+                <button className="admin-button secondary" onClick={() => addItem('achievements')}><Plus size={16} /> Add</button>
               </div>
-              <button className="admin-button secondary" onClick={() => addItem('achievements')}><Plus size={16} /> Add achievement</button>
-            </>
+              {data.achievements.map((a, i) => (
+                <div key={i} className="admin-card">
+                  <div className="card-header">
+                    <strong>{a.title || 'Untitled'}</strong>
+                    <button className="icon-btn danger" onClick={() => removeItem('achievements', i)} title="Remove"><Trash2 size={16} /></button>
+                  </div>
+                  <div className="form-grid">
+                    <Field label="Title" value={a.title} onChange={v => updateItem('achievements', i, 'title', v)} />
+                    <Field label="Organization" value={a.organization || ''} onChange={v => updateItem('achievements', i, 'organization', v)} />
+                    <Field label="Date" value={a.date || ''} onChange={v => updateItem('achievements', i, 'date', v)} />
+                    <Field label="Metric" value={a.metric || ''} onChange={v => updateItem('achievements', i, 'metric', v)} />
+                    <Field label="Detail" value={a.detail || ''} onChange={v => updateItem('achievements', i, 'detail', v)} multiline wide />
+                  </div>
+                </div>
+              ))}
+            </section>
           )}
 
           {active === 'contact' && (
-            <>
-              <SectionTitle title="Contact" sub="Contact message and links." />
+            <section className="admin-section">
+              <h2>Contact</h2>
               <div className="form-grid">
-                {([['intro','Contact message'],['email','Email'],['linkedin','LinkedIn URL'],['github','GitHub URL']] as const).map(([k,l]) => (
-                  <Field key={k} label={l} value={(data.contact as any)[k] ?? ''} onChange={v => setPath('contact', k, v)} wide={k==='intro'} multiline={k==='intro'} />
-                ))}
+                <Field label="Email" value={data.contact?.email || data.profile.email || ''} onChange={v => setData(prev => ({ ...prev, contact: { ...(prev.contact || {}), email: v } }))} />
+                <Field label="Message" value={data.contact?.message || ''} onChange={v => setData(prev => ({ ...prev, contact: { ...(prev.contact || {}), message: v } }))} multiline wide />
               </div>
-            </>
+            </section>
           )}
 
           {active === 'raw' && (
-            <>
-              <SectionTitle title="Advanced JSON" sub="Paste or import full portfolio JSON." />
-              <textarea className="json-editor" value={raw || JSON.stringify(data, null, 2)} onChange={e => setRaw(e.target.value)} spellCheck={false} />
+            <section className="admin-section">
+              <h2>Advanced JSON</h2>
+              <p className="form-help">Edit the full portfolio JSON. Invalid JSON will be rejected.</p>
+              <textarea className="raw-json" value={raw || JSON.stringify(data, null, 2)} onChange={e => setRaw(e.target.value)} rows={24} />
               {rawError && <p className="form-error">{rawError}</p>}
-              <div className="admin-bottom-actions" style={{ marginTop: 12 }}>
+              <div className="admin-actions">
                 <button className="admin-button primary" onClick={() => {
                   try {
                     const parsed = JSON.parse(raw || JSON.stringify(data));
-                    if (!parsed.profile || !parsed.experience || !parsed.projects) throw new Error('Required sections missing');
                     const next = normalize(parsed);
                     const problem = validateExperience(next.experience);
                     if (problem) throw new Error(problem);
-                    setData(next); setRaw(''); setRawError(''); setNotice('JSON applied to editor.');
+                    setData(next); setRaw(''); setRawError(''); setNotice('JSON applied.'); setError('');
                   } catch (e) { setRawError(e instanceof Error ? e.message : 'Invalid JSON'); }
-                }}>Apply JSON</button>
-                <label className="admin-button secondary upload-label"><Upload size={16} /> Import JSON file
-                  <input type="file" accept="application/json,.json" onChange={e => importJson(e.target.files?.[0])} />
+                }}><Save size={16} /> Apply JSON</button>
+                <label className="admin-button secondary">
+                  <Upload size={16} /> Import file
+                  <input type="file" accept="application/json,.json" hidden onChange={e => importJson(e.target.files?.[0])} />
                 </label>
+                <button className="admin-button secondary" onClick={downloadJson}><Download size={16} /> Download JSON</button>
               </div>
-            </>
+            </section>
           )}
 
           {active === 'publish' && (
-            <>
-              <SectionTitle title="Publish to GitHub" sub="Uses OWNER, REPO, TOKEN credentials to trigger the Action." />
-              <div className="admin-publish-card">
-                <h3>Credentials required</h3>
-                <ol>
-                  <li><strong>OWNER</strong> — {gh.owner || '(not set)'}</li>
-                  <li><strong>REPO</strong> — {gh.repo || '(not set)'}</li>
-                  <li><strong>TOKEN</strong> — {gh.token ? 'set in this browser' : '(not set — open GitHub credentials)'}</li>
-                  <li><strong>PROXY</strong> — {gh.proxyUrl ? `${gh.proxyUrl} (key ${gh.publishKey ? 'set' : 'missing'}) — used instead of the above` : '(not set — direct mode)'}</li>
-                </ol>
-                <div className="admin-bottom-actions" style={{ marginTop: 20 }}>
-                  <button className="admin-button primary" onClick={publishToGitHub} disabled={publishing}>
-                    {publishing ? <><Loader2 size={16} className="spin" /> Publishing…</> : <><Github size={16} /> Publish to GitHub</>}
-                  </button>
-                  <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save draft</button>
-                  <button className="admin-button secondary" onClick={downloadJson}><Download size={16} /> Download JSON</button>
-                </div>
+            <section className="admin-section">
+              <h2>Publish</h2>
+              <p className="form-help">Saves a draft in this browser, then triggers the GitHub Action (via proxy or direct token) to write portfolio.json and redeploy Pages.</p>
+              <div className="admin-actions">
+                <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save draft</button>
+                <button className="admin-button primary" onClick={publishToGitHub} disabled={publishing}>
+                  {publishing ? <Loader2 size={16} className="spin" /> : <Github size={16} />}
+                  {publishing ? 'Publishing…' : 'Publish to GitHub'}
+                </button>
               </div>
-            </>
+            </section>
           )}
-
-          {active !== 'publish' && (
-            <div className="admin-bottom-actions">
-              <button className="admin-button secondary" onClick={persistDraft}><Save size={16} /> Save draft</button>
-              <button className="admin-button primary" onClick={downloadJson}><Download size={16} /> Download JSON</button>
-              <button className="admin-button secondary" onClick={publishToGitHub} disabled={publishing}>
-                {publishing ? <><Loader2 size={16} className="spin" /> Publishing…</> : <><Github size={16} /> Publish to GitHub</>}
-              </button>
-            </div>
-          )}
-        </section>
+        </div>
       </div>
-
-      <footer className="admin-footer">Credentials: OWNER + REPO + TOKEN · Admin password separate · Old JSON under src/data/old/</footer>
     </main>
   );
 }
 
-function SectionTitle({ title, sub }: { title: string; sub: string }) {
-  return (<div className="admin-section-title"><span>CONTENT EDITOR</span><h2>{title}</h2><p>{sub}</p></div>);
-}
-
-function Field({ label, value, onChange, multiline = false, wide = false, disabled = false }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean; wide?: boolean; disabled?: boolean }) {
+function Field({ label, value, onChange, placeholder, type = 'text', multiline, wide }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; type?: string; multiline?: boolean; wide?: boolean;
+}) {
+  const [text, setText] = useState(value);
+  useEffect(() => { setText(value); }, [value]);
   return (
-    <label className={`admin-field ${wide ? 'wide' : ''}`}>
+    <label className={wide ? 'admin-field wide' : 'admin-field'}>
       <span>{label}</span>
-      {multiline ? <textarea value={value} onChange={e => onChange(e.target.value)} rows={4} disabled={disabled} /> : <input value={value} onChange={e => onChange(e.target.value)} disabled={disabled} placeholder={disabled ? 'Present' : undefined} autoComplete="off" />}
-    </label>
-  );
-}
-
-function ArrayField({ label, value, onChange }: { label: string; value: string[]; onChange: (v: string) => void }) {
-  // Keep the raw text locally so trailing spaces and blank lines survive while typing;
-  // the parent still receives every change and stores the cleaned list.
-  const [text, setText] = useState(() => value.join('\n'));
-  useEffect(() => {
-    // Re-sync only when the list was changed from outside (e.g. a group was deleted).
-    const local = toList(text);
-    if (local.length !== value.length || local.some((s, k) => s !== value[k])) setText(value.join('\n'));
-  }, [value]);
-  return (
-    <label className="admin-field wide">
-      <span>{label}</span>
-      <textarea
-        rows={Math.max(3, text.split('\n').length)}
-        value={text}
-        onChange={e => { setText(e.target.value); onChange(e.target.value); }}
-      />
+      {multiline ? (
+        <textarea value={text} placeholder={placeholder} onChange={e => { setText(e.target.value); onChange(e.target.value); }} rows={4} />
+      ) : (
+        <input type={type} value={text} placeholder={placeholder} onChange={e => { setText(e.target.value); onChange(e.target.value); }} />
+      )}
     </label>
   );
 }
