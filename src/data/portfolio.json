@@ -8,11 +8,11 @@
     "linkedin": "https://www.linkedin.com/in/allan-varghese-b0850421b/",
     "github": "https://github.com/allanvarghese567-lab",
     "heroTitle": "I build software that connects ideas to impact.",
-    "heroSummary": "Full-stack engineer with 4+ years of experience across .NET, React, and Angular — building scalable web apps, reliable APIs, and practical systems with clean architecture."
+    "heroSummary": "Full-stack engineer focused on practical systems, clean architecture, and AI-enabled products that solve real problems."
   },
   "about": {
     "heading": "About",
-    "summary": "Since September 2022, I have designed and built full-stack applications across .NET, React, Angular, FastAPI, and modern data platforms. I am a Software Engineer with 4+ years of experience, and I care about clarity in architecture, reliable delivery, and using AI where it genuinely improves outcomes.",
+    "summary": "I design and build full-stack applications across .NET, React, Angular, FastAPI, and modern data platforms. I care about clarity in architecture, reliable delivery, and using AI where it genuinely improves outcomes.",
     "focus": [
       "Full-stack product engineering",
       "AI-integrated applications",
@@ -23,8 +23,8 @@
   "experience": [
     {
       "id": "exp-1",
-      "role": "Software Engineer",
-      "company": "",
+      "role": "Senior Full Stack Developer",
+      "company": "Qubiqon Consulting Pvt Ltd",
       "roleType": "Current role",
       "start": "2024-01",
       "end": null,
@@ -34,7 +34,7 @@
     {
       "id": "exp-2",
       "role": "Software Developer",
-      "company": "",
+      "company": "Kovenants technologies Pvt Ltd",
       "roleType": "Previous role",
       "start": "2022-09",
       "end": "2023-12",
@@ -45,19 +45,41 @@
   "skills": [
     {
       "group": "Frontend",
-      "items": ["React", "Angular", "Next.js", "TypeScript", "Tailwind CSS"]
+      "items": [
+        "React",
+        "Angular",
+        "Next.js",
+        "TypeScript",
+        "Tailwind CSS"
+      ]
     },
     {
       "group": "Backend",
-      "items": [".NET", "C#", "FastAPI", "Python", "Node.js"]
+      "items": [
+        ".NET",
+        "C#",
+        "FastAPI",
+        "Python",
+        "Node.js"
+      ]
     },
     {
       "group": "Databases",
-      "items": ["SQL", "SQL Server", "PostgreSQL", "Supabase", "ORM"]
+      "items": [
+        "SQL",
+        "SQL Server",
+        "PostgreSQL",
+        "Supabase",
+        "ORM"
+      ]
     },
     {
       "group": "Platforms & Analytics",
-      "items": ["FlutterFlow", "Power BI", "AI-integrated applications"]
+      "items": [
+        "FlutterFlow",
+        "Power BI",
+        "AI-integrated applications"
+      ]
     }
   ],
   "projects": [
@@ -65,7 +87,12 @@
       "name": "AI Gateway",
       "category": "AI infrastructure",
       "description": "A universal AI gateway concept for model adapters, agent workflows, tool contracts, and bounded execution.",
-      "technologies": ["FastAPI", "Python", "LangGraph", "PostgreSQL"],
+      "technologies": [
+        "FastAPI",
+        "Python",
+        "LangGraph",
+        "PostgreSQL"
+      ],
       "status": "In development",
       "url": "https://github.com/allanvarghese567-lab/meridian-gateway",
       "experienceId": null,
@@ -75,7 +102,12 @@
       "name": "TravelAI",
       "category": "Travel technology",
       "description": "A trip-planning platform concept for route-based stop suggestions and itinerary generation.",
-      "technologies": ["Next.js", "TypeScript", "Supabase", "Maps"],
+      "technologies": [
+        "Next.js",
+        "TypeScript",
+        "Supabase",
+        "Maps"
+      ],
       "status": "In development",
       "url": "https://github.com/allanvarghese567-lab/TravelAi",
       "experienceId": null,
@@ -85,7 +117,12 @@
       "name": "OrbitOne",
       "category": "Multi-tenant SaaS",
       "description": "A modular SaaS platform concept with tenant-aware access, business modules, billing, and workflows.",
-      "technologies": ["Next.js", "Supabase", "Drizzle", "Tailwind CSS"],
+      "technologies": [
+        "Next.js",
+        "Supabase",
+        "Drizzle",
+        "Tailwind CSS"
+      ],
       "status": "Concept / build plan",
       "url": "",
       "experienceId": null,
@@ -95,7 +132,12 @@
       "name": "ResumeAI",
       "category": "Career tools",
       "description": "An AI-assisted resume builder concept using structured resume data, reusable templates, validation, and document exports.",
-      "technologies": ["Next.js", "TypeScript", "Zod", "PDF export"],
+      "technologies": [
+        "Next.js",
+        "TypeScript",
+        "Zod",
+        "PDF export"
+      ],
       "status": "In development",
       "url": "https://github.com/allanvarghese567-lab/ResumeAi",
       "experienceId": null,
@@ -107,14 +149,14 @@
       "title": "Bachelor of Engineering",
       "detail": "Computer Science and Engineering",
       "organization": "Marthandam College of Engineering and Technology",
-      "date": "Sep 2017 – Apr 2021",
+      "date": "Sep 2017 â Apr 2021",
       "metric": "CGPA 7.41/10"
     },
     {
       "title": "4+ years in software development",
       "detail": "Professional timeline starts in September 2022 and continues to the current role.",
       "organization": "Professional experience",
-      "date": "Sep 2022 – Present",
+      "date": "Sep 2022 â Present",
       "metric": "4+ years as of Oct 2026"
     },
     {
@@ -126,7 +168,7 @@
     }
   ],
   "contact": {
-    "intro": "Let’s connect about full-stack engineering, AI-enabled products, or turning an early idea into a useful application.",
+    "intro": "Letâs connect about full-stack engineering, AI-enabled products, or turning an early idea into a useful application.",
     "email": "allanvarghese12@gmail.com",
     "linkedin": "https://www.linkedin.com/in/allan-varghese-b0850421b/",
     "github": "https://github.com/allanvarghese567-lab"
